@@ -1,26 +1,32 @@
 import React from 'react';
-import logo from './logo.svg';
-import './App.css';
+import map from "lodash/map";
+import './projects.css';
 
-function App() {
-  return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
-  );
+export default class Projects extends React.Component {
+  renderAssets = (projectId) => {
+    const assets = this.props.assets[projectId];
+    console.log(assets);
+    if (!assets) return null;
+    if (!assets.length) return <div>No assets</div>
+    return map(assets, asset => (
+      <div key={projectId + asset.id} className="asset">
+        Asset for Layer "{asset.layerName}"
+      </div>
+    ))
+  }
+  render() {
+    return (
+      <div className="projects">
+        {map(this.props.projects, project => (
+          <div key={project.id} className="project">
+            {project.name}
+            <button onClick={() => this.props.onClickProject(project.id)}>
+              Fetch Assets
+            </button>
+            {this.renderAssets(project.id)}
+          </div>
+        ))}
+      </div>
+    )
+  }
 }
-
-export default App;
