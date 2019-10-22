@@ -1,26 +1,34 @@
-import React from 'react';
-import logo from './logo.svg';
+import * as React from 'react';
+import { fetchProjects } from "./api";
+import map from "lodash/map";
 import './App.css';
 
-function App() {
-  return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
-  );
-}
+export default class App extends React.Component {
+  constructor() {
+    super();
+    this.state = { projects: [] };
+  }
 
-export default App;
+  componentDidMount() {
+    this.loadProjects();
+  }
+
+  loadProjects = async () => {
+    const projects = await fetchProjects();
+    this.setState({ projects });
+  }
+
+  render() {
+    const projects = this.state.projects || [];
+    console.log(projects);
+    return (
+      <div className="App">
+        <header className="App-header">
+          <ul>
+            {map(projects, project => <li key={project.id}>{project.name}</li>)}
+          </ul>
+        </header>
+      </div>
+    );
+  }
+}
