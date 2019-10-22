@@ -22,3 +22,16 @@ export const fetchProjectAssets = async (projectId) => {
     return [];
   }
 }
+
+export const downloadAsset = async asset => {
+  await apiClient.assets.raw({
+    assetId: asset.id,
+    projectId: asset.projectId
+  }, { disableWrite: true });
+}
+
+export const downloadAssets = async assets => {
+  for (const asset of assets) {
+    await downloadAsset(asset);
+  }
+}
