@@ -1,4 +1,4 @@
-import React from 'react';
+import * as React from 'react';
 import { map, forEach } from "lodash";
 import { fetchProjectAssets, downloadAsset } from "./api";
 import './projects.css';
@@ -25,7 +25,7 @@ export default class Project extends React.Component {
     await downloadAsset(asset);
     this.setState(prev => ({
       downloaded: prev.downloaded + 1,
-      downloading: prev.downloaded + 1 !== prev.state.assets.length
+      downloading: prev.downloading ? prev.downloaded + 1 !== prev.assets.length : false
     }));
   }
 
@@ -37,12 +37,13 @@ export default class Project extends React.Component {
         assets,
         fetching: false,
         hasFetched: true,
-        downloading: !!assets.length
+        downloading: !!assets.length,
+        downloaded: 0
       }, () => {
         forEach(assets, asset => this.downloadAsset(asset));
       });
     } else {
-      this.setState({ downloading: true }, () => {
+      this.setState({ downloaded: 0, downloading: true }, () => {
         forEach(this.state.assets, asset => this.downloadAsset(asset));
       });
     }
