@@ -1,6 +1,7 @@
 import * as Abstract from "abstract-sdk";
 
 const apiClient = new Abstract.Client({
+  accessToken: "c71642a864bf6d5340b579ddcc7a69bc146baf549117dc02e9e12017f7ddbcbf"
 });
 
 export const fetchProjects = async () => {
@@ -23,8 +24,8 @@ export const fetchProjectAssets = async (projectId) => {
   }
 }
 
-export const downloadAsset = async asset => {
-  await apiClient.assets.raw({
+export const downloadAsset = async (asset, onSuccess) => {
+  return await apiClient.assets.raw({
     assetId: asset.id,
     projectId: asset.projectId
   });

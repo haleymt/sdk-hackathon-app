@@ -1,5 +1,8 @@
 import * as React from 'react';
-import { map, forEach } from "lodash";
+import { map } from "lodash";
+import JSZip from "jszip";
+import fs from "fs";
+import { saveAs } from 'file-saver';
 import { fetchProjectAssets, downloadAsset } from "./api";
 import './projects.css';
 
@@ -21,12 +24,39 @@ export default class Project extends React.Component {
     this.setState({ assets, fetching: false, hasFetched: true });
   }
 
-  downloadAsset = async asset => {
-    await downloadAsset(asset);
+  downloadAsset = async (asset, zip) => {
+    const raw = await downloadAsset(asset);
     this.setState(prev => ({
       downloaded: prev.downloaded + 1,
       downloading: prev.downloading ? prev.downloaded + 1 !== prev.assets.length : false
     }));
+
+    if (zip) {
+      zip.file(asset.id + "." + asset.fileFormat, raw, {
+        base64: true
+      });
+    }
+  }
+
+  downloadAndZipAssets = async assets => {
+    let zip = new JSZip();
+    let p = [];
+    assets.forEach(asset => {
+      p.push(this.downloadAsset(asset, zip));
+    });
+
+    Promise.all(p).then(() => {
+      zip
+        .generateAsync({ type:"blob" })
+        .then((blob) => saveAs(blob, `Assets for ${this.props.project.name}.zip`));
+        // .generateNodeStream({ type: "nodebuffer", streamFiles: true })
+        // .pipe(fs.createWriteStream("out.zip"))
+        // .on("finish", function() {
+        //   // JSZip generates a readable stream with a "end" event,
+        //   // but is piped here in a writable stream which emits a "finish" event.
+        //   console.log("out.zip written.");
+        // });
+    });
   }
 
   fetchAndDownloadAssets = async () => {
@@ -39,12 +69,10 @@ export default class Project extends React.Component {
         hasFetched: true,
         downloading: !!assets.length,
         downloaded: 0
-      }, () => {
-        forEach(assets, asset => this.downloadAsset(asset));
-      });
+      }, () => this.downloadAndZipAssets(assets));
     } else {
       this.setState({ downloaded: 0, downloading: true }, () => {
-        forEach(this.state.assets, asset => this.downloadAsset(asset));
+        this.downloadAndZipAssets(this.state.assets);
       });
     }
   }
