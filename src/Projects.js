@@ -7,12 +7,15 @@ export default class Projects extends React.Component {
   render() {
     return (
       <div className="projects">
-        {map(this.props.projects, project => {
-          if (project.name.toLowerCase().includes("web")) {
-            return <Project key={project.id} project={project} />;
-          }
-        })}
+        {map(this.props.projects, project => (
+          <Project
+            key={project.id}
+            project={project}
+            selected={project.id === this.props.activeProjectId}
+            onSelectProject={this.props.onSelectProject}
+          />
+        ))}
       </div>
-    )
+    );
   }
 }
