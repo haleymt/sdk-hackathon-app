@@ -95,18 +95,23 @@ export default class ProjectAssets extends React.Component {
     const { assets, branches, branchId, downloading, downloaded } = this.state;
     const { project } = this.props;
     const branchAssets = assets[branchId];
+    const branchAssetCount = branchAssets ? branchAssets.length : 0;
+    let downloadedCount = downloaded + 1;
+    if (branchAssets && downloadedCount > branchAssetCount) {
+      downloadedCount = downloaded;
+    }
     return (
       <div className="assets">
         <h2>
           <div className="circle" style={{ background: project.color }} />
           {project.name}
           <button
-            disabled={!branchAssets || !branchAssets.length || downloading}
+            disabled={!branchAssetCount || downloading}
             onClick={() => this.downloadAllAssets()}
             className="button"
           >
             {downloading
-              ? `Downloading ${downloaded + 1} of ${branchAssets.length}...`
+              ? `Downloading ${downloadedCount} of ${branchAssetCount}...`
               : "Download All"}
           </button>
           <select
@@ -120,7 +125,7 @@ export default class ProjectAssets extends React.Component {
             ))}
           </select>
         </h2>
-        {!branchAssets || !branchAssets.length ? this.renderEmpty() : (
+        {!branchAssetCount ? this.renderEmpty() : (
           <div>
             {map(branchAssets, asset => (
               <div key={asset.id} className="asset">
