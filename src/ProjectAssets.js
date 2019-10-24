@@ -29,7 +29,7 @@ export default class ProjectAssets extends React.Component {
     const raw = await downloadAsset(asset);
 
     this.setState(prev => ({
-      downloaded: prev.downloaded + 1,
+      downloaded: prev.downloading? prev.downloaded + 1 : prev.downloaded,
       downloading: prev.downloading ? prev.downloaded + 1 !== prev.assets.length : false
     }));
 
@@ -47,7 +47,10 @@ export default class ProjectAssets extends React.Component {
     Promise.all(p).then(() => {
       zip
         .generateAsync({ type: "blob" })
-        .then((blob) => saveAs(blob, `Assets for ${this.props.project.name}.zip`));
+        .then((blob) => {
+          saveAs(blob, `Assets for ${this.props.project.name}.zip`);
+          this.setState({ downloading: false });
+        });
     });
   }
 
@@ -86,7 +89,7 @@ export default class ProjectAssets extends React.Component {
               <div key={asset.id} className="asset">
                 Asset for Layer "{asset.layerName}"
                 <button
-                  onClick={() => this.downloadAsset(asset)}
+                  onClick={() => this.downloadAndZipAssets([asset])}
                   className="button"
                 >
                   Download
