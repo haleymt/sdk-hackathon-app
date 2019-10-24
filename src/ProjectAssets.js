@@ -129,7 +129,24 @@ export default class ProjectAssets extends React.Component {
           <div>
             {map(branchAssets, asset => (
               <div key={asset.id} className="asset">
-                Asset for Layer <strong>{asset.layerName}</strong>
+                Asset for Layer
+                <a
+                 href={
+                   "abstract://app/share?projectId=" +
+                   asset.projectId +
+                   "&branchId=" +
+                   this.state.branchId +
+                   "&commitSha=" +
+                   asset.sha +
+                   "&fileId=" +
+                   asset.fileId +
+                   "&layerId=" +
+                   asset.layerId +
+                   "&kind=layer"
+                 }
+               >
+                  <strong>{asset.layerName}</strong>
+                </a>
                 <button
                   onClick={() => this.downloadAndZipAssets([asset])}
                   className="button"

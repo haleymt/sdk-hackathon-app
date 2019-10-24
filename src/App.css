@@ -17,3 +17,13 @@
   margin: 0;
   border-bottom: 1px solid rgba(255, 255, 255, 0.2);
 }
+
+a {
+  color: white;
+  text-decoration: none;
+  margin-left: 4px;
+}
+
+a:hover {
+  text-decoration: underline;
+}
