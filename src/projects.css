@@ -60,6 +60,10 @@
   height: 24px;
 }
 
+.select {
+  width: 88px;
+}
+
 .circle {
   height: 12px;
   width: 12px;

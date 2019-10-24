@@ -13,6 +13,7 @@ export default class ProjectAssets extends React.Component {
       branches: [{ id: "master", name: "Master" }],
       branchId: "master",
       fetching: true,
+      fetchingBranches: true,
       downloading: false,
       downloaded: 0
     };
@@ -21,12 +22,6 @@ export default class ProjectAssets extends React.Component {
   componentDidMount() {
     this.loadProjectAssets(this.state.branchId);
     this.loadProjectBranches();
-  }
-
-  componentDidUpdate(prevProps, prevState) {
-    if (prevState.branchId !== this.state.branchId) {
-
-    }
   }
 
   loadProjectAssets = async branchId => {
@@ -43,7 +38,10 @@ export default class ProjectAssets extends React.Component {
 
   loadProjectBranches = async () => {
     const branches = await fetchProjectBranches(this.props.project.id);
-    this.setState({ branches: sortBy(branches, "name") });
+    this.setState({
+      branches: sortBy(branches, "name"),
+      fetchingBranches: false
+    });
   }
 
   downloadAsset = async (asset, zip) => {
@@ -114,9 +112,10 @@ export default class ProjectAssets extends React.Component {
               : "Download All"}
           </button>
           <select
-            className="button"
+            className="button select"
             value={branchId}
             onChange={this.handleBranchChange}
+            disabled={this.state.fetchingBranches}
           >
             {map(branches, branch => (
               <option key={branch.id} value={branch.id}>{branch.name}</option>
