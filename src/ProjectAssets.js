@@ -2,12 +2,7 @@ import * as React from "react";
 import { map, sortBy } from "lodash";
 import JSZip from "jszip";
 import { saveAs } from "file-saver";
-import {
-  fetchProjectAssets,
-  fetchProjectBranches,
-  previewURL,
-  downloadAsset
-} from "./api";
+import { fetchProjectAssets, fetchProjectBranches, downloadAsset } from "./api";
 import "./projects.css";
 
 export default class ProjectAssets extends React.Component {
@@ -29,23 +24,12 @@ export default class ProjectAssets extends React.Component {
     this.loadProjectBranches();
   }
 
-  loadPreviewURL = async (asset, branchId) => {
-    const url = await previewURL(asset, branchId);
-    console.log(url);
-    return url;
-  };
-
   loadProjectAssets = async branchId => {
     const assets = await fetchProjectAssets(this.props.project.id, branchId);
     this.setState(prev => ({
       assets: { ...prev.assets, [branchId]: assets },
       fetching: false
     }));
-
-    console.log(assets[0]);
-    if (assets.length > 0) {
-      this.loadPreviewURL(assets[0], branchId);
-    }
   };
 
   loadProjectBranches = async () => {
