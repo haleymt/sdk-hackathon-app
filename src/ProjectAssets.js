@@ -9,7 +9,7 @@ export default class ProjectAssets extends React.Component {
   constructor() {
     super();
     this.state = {
-      assets: { master: [] },
+      assets: {},
       branches: [{ id: "master", name: "Master" }],
       branchId: "master",
       fetching: true,
@@ -25,10 +25,6 @@ export default class ProjectAssets extends React.Component {
   }
 
   loadProjectAssets = async branchId => {
-    if (this.state.assets[branchId] && this.state.assets[branchId].length) {
-      return;
-    }
-
     const assets = await fetchProjectAssets(this.props.project.id, branchId);
     this.setState(prev => ({
       assets: { ...prev.assets, [branchId]: assets },
@@ -83,8 +79,10 @@ export default class ProjectAssets extends React.Component {
 
   handleBranchChange = event => {
     const branchId = event.target.value;
-    this.setState({ branchId, fetching: true }, () => {
-      this.loadProjectAssets(branchId);
+    this.setState(prev => ({ branchId, fetching: !prev.assets[branchId] }), () => {
+      if (this.state.fetching) {
+        this.loadProjectAssets(branchId);
+      }
     });
   }
 
