@@ -15,7 +15,7 @@
   color: white;
   display: flex;
   align-items: center;
-  background-color: #282c34;
+  background-color: #222324;
 }
 
 .project:hover {
@@ -61,7 +61,7 @@
 }
 
 .select {
-  width: 88px;
+  min-width: 88px;
 }
 
 .circle {
