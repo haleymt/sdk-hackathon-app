@@ -1,8 +1,13 @@
 import * as React from "react";
 import { map, sortBy } from "lodash";
 import JSZip from "jszip";
-import { saveAs } from 'file-saver';
-import { fetchProjectAssets, fetchProjectBranches, downloadAsset } from "./api";
+import { saveAs } from "file-saver";
+import {
+  fetchProjectAssets,
+  fetchProjectBranches,
+  previewURL,
+  downloadAsset
+} from "./api";
 import "./projects.css";
 
 export default class ProjectAssets extends React.Component {
@@ -24,13 +29,24 @@ export default class ProjectAssets extends React.Component {
     this.loadProjectBranches();
   }
 
+  loadPreviewURL = async (asset, branchId) => {
+    const url = await previewURL(asset, branchId);
+    console.log(url);
+    return url;
+  };
+
   loadProjectAssets = async branchId => {
     const assets = await fetchProjectAssets(this.props.project.id, branchId);
     this.setState(prev => ({
       assets: { ...prev.assets, [branchId]: assets },
       fetching: false
     }));
-  }
+
+    console.log(assets[0]);
+    if (assets.length > 0) {
+      this.loadPreviewURL(assets[0], branchId);
+    }
+  };
 
   loadProjectBranches = async () => {
     const branches = await fetchProjectBranches(this.props.project.id);
@@ -38,7 +54,7 @@ export default class ProjectAssets extends React.Component {
       branches: sortBy(branches, "name"),
       fetchingBranches: false
     });
-  }
+  };
 
   downloadAsset = async (asset, zip) => {
     const raw = await downloadAsset(asset);
@@ -50,7 +66,7 @@ export default class ProjectAssets extends React.Component {
     if (zip) {
       zip.file(asset.id + "." + asset.fileFormat, raw, { base64: true });
     }
-  }
+  };
 
   downloadAndZipAssets = async assets => {
     let zip = new JSZip();
@@ -59,37 +75,40 @@ export default class ProjectAssets extends React.Component {
     assets.forEach(asset => p.push(this.downloadAsset(asset, zip)));
 
     Promise.all(p).then(() => {
-      zip
-        .generateAsync({ type: "blob" })
-        .then((blob) => {
-          saveAs(
-            blob,
-            `Asset${assets.length > 1 ? "s" : ""} for ${this.props.project.name}.zip`
-          );
-          this.setState({ downloading: false });
-        });
+      zip.generateAsync({ type: "blob" }).then(blob => {
+        saveAs(
+          blob,
+          `Asset${assets.length > 1 ? "s" : ""} for ${
+            this.props.project.name
+          }.zip`
+        );
+        this.setState({ downloading: false });
+      });
     });
-  }
+  };
 
   downloadAllAssets = async () => {
     this.setState({ downloaded: 0, downloading: true }, () => {
       this.downloadAndZipAssets(this.state.assets[this.state.branchId] || []);
     });
-  }
+  };
 
   handleBranchChange = event => {
     const branchId = event.target.value;
-    this.setState(prev => ({ branchId, fetching: !prev.assets[branchId] }), () => {
-      if (this.state.fetching) {
-        this.loadProjectAssets(branchId);
+    this.setState(
+      prev => ({ branchId, fetching: !prev.assets[branchId] }),
+      () => {
+        if (this.state.fetching) {
+          this.loadProjectAssets(branchId);
+        }
       }
-    });
-  }
+    );
+  };
 
   renderEmpty = () => {
     if (this.state.fetching) return <div>Loading assets...</div>;
     return <div>No assets</div>;
-  }
+  };
 
   render() {
     const { assets, branches, branchId, downloading, downloaded } = this.state;
@@ -116,15 +135,35 @@ export default class ProjectAssets extends React.Component {
             disabled={this.state.fetchingBranches}
           >
             {map(branches, branch => (
-              <option key={branch.id} value={branch.id}>{branch.name}</option>
+              <option key={branch.id} value={branch.id}>
+                {branch.name}
+              </option>
             ))}
           </select>
         </h2>
-        {!branchAssets || !branchAssets.length ? this.renderEmpty() : (
+        {!branchAssets || !branchAssets.length ? (
+          this.renderEmpty()
+        ) : (
           <div>
             {map(branchAssets, asset => (
               <div key={asset.id} className="asset">
-                Asset for Layer <strong>{asset.layerName}</strong>
+                <a
+                  href={
+                    "abstract://app/share?projectId=" +
+                    asset.projectId +
+                    "&branchId=" +
+                    this.state.branchId +
+                    "&commitSha=" +
+                    asset.sha +
+                    "&fileId=" +
+                    asset.fileId +
+                    "&layerId=" +
+                    asset.layerId +
+                    "&kind=layer"
+                  }
+                >
+                  Asset for Layer <strong>{asset.layerName}</strong>
+                </a>
                 <button
                   onClick={() => this.downloadAndZipAssets([asset])}
                   className="button"
@@ -136,6 +175,6 @@ export default class ProjectAssets extends React.Component {
           </div>
         )}
       </div>
-    )
+    );
   }
 }
