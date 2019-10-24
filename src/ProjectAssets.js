@@ -1,15 +1,17 @@
 import * as React from "react";
-import { map } from "lodash";
+import { map, sortBy } from "lodash";
 import JSZip from "jszip";
 import { saveAs } from 'file-saver';
-import { fetchProjectAssets, downloadAsset } from "./api";
+import { fetchProjectAssets, fetchProjectBranches, downloadAsset } from "./api";
 import "./projects.css";
 
 export default class ProjectAssets extends React.Component {
   constructor() {
     super();
     this.state = {
-      assets: [],
+      assets: { master: [] },
+      branches: [{ id: "master", name: "Master" }],
+      branchId: "master",
       fetching: true,
       downloading: false,
       downloaded: 0
@@ -17,20 +19,38 @@ export default class ProjectAssets extends React.Component {
   }
 
   componentDidMount() {
-    this.loadProjectAssets();
+    this.loadProjectAssets(this.state.branchId);
+    this.loadProjectBranches();
   }
 
-  loadProjectAssets = async () => {
-    const assets = await fetchProjectAssets(this.props.project.id);
-    this.setState({ assets, fetching: false });
+  componentDidUpdate(prevProps, prevState) {
+    if (prevState.branchId !== this.state.branchId) {
+
+    }
+  }
+
+  loadProjectAssets = async branchId => {
+    if (this.state.assets[branchId] && this.state.assets[branchId].length) {
+      return;
+    }
+
+    const assets = await fetchProjectAssets(this.props.project.id, branchId);
+    this.setState(prev => ({
+      assets: { ...prev.assets, [branchId]: assets },
+      fetching: false
+    }));
+  }
+
+  loadProjectBranches = async () => {
+    const branches = await fetchProjectBranches(this.props.project.id);
+    this.setState({ branches: sortBy(branches, "name") });
   }
 
   downloadAsset = async (asset, zip) => {
     const raw = await downloadAsset(asset);
 
     this.setState(prev => ({
-      downloaded: prev.downloading? prev.downloaded + 1 : prev.downloaded,
-      downloading: prev.downloading ? prev.downloaded + 1 !== prev.assets.length : false
+      downloaded: prev.downloading ? prev.downloaded + 1 : prev.downloaded
     }));
 
     if (zip) {
@@ -59,7 +79,14 @@ export default class ProjectAssets extends React.Component {
 
   downloadAllAssets = async () => {
     this.setState({ downloaded: 0, downloading: true }, () => {
-      this.downloadAndZipAssets(this.state.assets);
+      this.downloadAndZipAssets(this.state.assets[this.state.branchId] || []);
+    });
+  }
+
+  handleBranchChange = event => {
+    const branchId = event.target.value;
+    this.setState({ branchId, fetching: true }, () => {
+      this.loadProjectAssets(branchId);
     });
   }
 
@@ -69,28 +96,38 @@ export default class ProjectAssets extends React.Component {
   }
 
   render() {
-    const { assets, downloading, downloaded } = this.state;
+    const { assets, branches, branchId, downloading, downloaded } = this.state;
     const { project } = this.props;
+    const branchAssets = assets[branchId];
     return (
       <div className="assets">
         <h2>
           <div className="circle" style={{ background: project.color }} />
           {project.name}
           <button
-            disabled={!assets.length || downloading}
+            disabled={!branchAssets || !branchAssets.length || downloading}
             onClick={() => this.downloadAllAssets()}
             className="button"
           >
             {downloading
-              ? `Downloading ${downloaded + 1} of ${assets.length}...`
+              ? `Downloading ${downloaded + 1} of ${branchAssets.length}...`
               : "Download All"}
           </button>
+          <select
+            className="button"
+            value={branchId}
+            onChange={this.handleBranchChange}
+          >
+            {map(branches, branch => (
+              <option key={branch.id} value={branch.id}>{branch.name}</option>
+            ))}
+          </select>
         </h2>
-        {!assets.length ? this.renderEmpty() : (
+        {!branchAssets || !branchAssets.length ? this.renderEmpty() : (
           <div>
-            {map(assets, asset => (
+            {map(branchAssets, asset => (
               <div key={asset.id} className="asset">
-                Asset for Layer "{asset.layerName}"
+                Asset for Layer <strong>{asset.layerName}</strong>
                 <button
                   onClick={() => this.downloadAndZipAssets([asset])}
                   className="button"
