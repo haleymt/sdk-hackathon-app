@@ -12,6 +12,7 @@ export default class Project extends React.Component {
         className={classes}
         onClick={() => onSelectProject(project.id)}
       >
+        <div className="circle" style={{ background: project.color }} />
         <strong>{project.name}</strong>
       </button>
     );

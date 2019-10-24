@@ -27,6 +27,7 @@ export default class ProjectAssets extends React.Component {
 
   downloadAsset = async (asset, zip) => {
     const raw = await downloadAsset(asset);
+
     this.setState(prev => ({
       downloaded: prev.downloaded + 1,
       downloading: prev.downloading ? prev.downloaded + 1 !== prev.assets.length : false
@@ -41,13 +42,11 @@ export default class ProjectAssets extends React.Component {
     let zip = new JSZip();
     let p = [];
 
-    assets.forEach(asset => {
-      p.push(this.downloadAsset(asset, zip));
-    });
+    assets.forEach(asset => p.push(this.downloadAsset(asset, zip)));
 
     Promise.all(p).then(() => {
       zip
-        .generateAsync({ type:"blob" })
+        .generateAsync({ type: "blob" })
         .then((blob) => saveAs(blob, `Assets for ${this.props.project.name}.zip`));
     });
   }
@@ -64,17 +63,21 @@ export default class ProjectAssets extends React.Component {
   }
 
   render() {
-    const { assets } = this.state;
+    const { assets, downloading, downloaded } = this.state;
+    const { project } = this.props;
     return (
       <div className="assets">
         <h2>
-          Assets for {this.props.project.name}
+          <div className="circle" style={{ background: project.color }} />
+          {project.name}
           <button
-            disabled={!assets.length}
+            disabled={!assets.length || downloading}
             onClick={() => this.downloadAllAssets()}
             className="button"
           >
-            Download All
+            {downloading
+              ? `Downloading ${downloaded + 1} of ${assets.length}...`
+              : "Download All"}
           </button>
         </h2>
         {!assets.length ? this.renderEmpty() : (
