@@ -48,7 +48,10 @@ export default class ProjectAssets extends React.Component {
       zip
         .generateAsync({ type: "blob" })
         .then((blob) => {
-          saveAs(blob, `Assets for ${this.props.project.name}.zip`);
+          saveAs(
+            blob,
+            `Asset${assets.length > 1 ? "s" : ""} for ${this.props.project.name}.zip`
+          );
           this.setState({ downloading: false });
         });
     });
