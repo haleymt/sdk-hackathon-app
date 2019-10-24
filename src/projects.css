@@ -49,6 +49,10 @@
   padding-bottom: 20px;
 }
 
+.asset {
+  margin-bottom: 4px;
+}
+
 .button {
   margin-left: 12px;
   padding: 4px 8px;
