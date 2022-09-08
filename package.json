@@ -7,7 +7,7 @@
     "dotenv": "^8.2.0",
     "file-saver": "^2.0.2",
     "fs": "^0.0.1-security",
-    "jszip": "^3.2.2",
+    "jszip": "^3.7.0",
     "lodash": "^4.17.15",
     "react": "^16.10.2",
     "react-dom": "^16.10.2",
